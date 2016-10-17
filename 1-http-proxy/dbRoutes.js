@@ -50,11 +50,15 @@ const getParser = (...info) => {
     return parser.call(null, ...info)
 }
 
+/**
+ * @param address String
+ * @param port Number
+ * @return Boolean
+ */
 const isAcceptConnect = (address, port) => {
     for (let item of notAcceptConnect) {
         let isRefuse = item.address.test(address)
         if (item.port) isRefuse = (isRefuse && item.port.test(port))
-        // let isRefuse = (item.address.test(address) && item.port && item.port.test(port))
         if (isRefuse) return false
     }
     return true

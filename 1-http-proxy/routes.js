@@ -25,7 +25,7 @@ const createResponse = (body, options = {}, status = 200) => {
         'Content-Length': Buffer.byteLength(body),
         'Date': new Date().toGMTString(),
         'Connection': 'keep-alive',
-        // 'Last-Modified': new Date().toGMTString()
+        'Last-Modified': new Date().toGMTString()
     }
     for (let i in options) plainOpt[i] = options[i]
     for (let i in plainOpt) result += `${i}: ${plainOpt[i]}\r\n`
@@ -35,6 +35,12 @@ const createResponse = (body, options = {}, status = 200) => {
 
 // ---------------------------------------------------------------------------------
 
+/**
+ * @param headInfo Object
+ * @param data Buffer
+ * @param client net.Socket
+ * @return Promise
+ */
 fetchObj.fetchRemote = (headInfo, data, client = new net.Socket()) => {
     let host = headInfo.host
         ,port = headInfo.port
