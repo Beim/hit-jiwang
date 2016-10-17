@@ -18,23 +18,27 @@ const statusCode = {
 
 const createResponse = (body, options = {}, status = 200) => {
     if (!statusCode[status]) status = 404
-    let result = `HTTP/1.1 ${status} ${statusCode[status]}\n`
+    let result = `HTTP/1.1 ${status} ${statusCode[status]}\r\n`
     let plainOpt = {
         'is-proxy': true,
         'Content-Type': `text/plain; charset=utf-8`,
-        'Content-Length': `${Buffer.byteLength(body)}`,
-        'Date': `${new Date().toGMTString()}`,
-        'Connection': 'keep-alive'
+        'Content-Length': Buffer.byteLength(body),
+        'Date': new Date().toGMTString(),
+        'Connection': 'keep-alive',
+        // 'Last-Modified': new Date().toGMTString()
     }
     for (let i in options) plainOpt[i] = options[i]
-    for (let i in plainOpt) result += `${i}: ${plainOpt[i]}\n`
-    result += `\n${body}`
+    for (let i in plainOpt) result += `${i}: ${plainOpt[i]}\r\n`
+    result += `\r\n${body}`
     return result
 }
 
 // ---------------------------------------------------------------------------------
 
-fetchObj.fetchRemote = (host, port, data, client = new net.Socket()) => {
+fetchObj.fetchRemote = (headInfo, data, client = new net.Socket()) => {
+    let host = headInfo.host
+        ,port = headInfo.port
+        ,url = headInfo.url
     return new Promise((rsl, rej) => {
         let resArr = []
         client.connect(port, host, () => {
@@ -59,7 +63,7 @@ fetchObj.fetchForbid = (...args) => {
     })
 }
 
-fetchObj.fetchBaidu = (host, port, data, client = new net.Socket()) => {
+fetchObj.fetchBaidu = (headInfo, data, client = new net.Socket()) => {
     return new Promise((rsl, rej) => {
         let response = createResponse('这是谷歌~')
         rsl(response)

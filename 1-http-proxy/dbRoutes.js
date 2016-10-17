@@ -33,14 +33,14 @@ const dbRoutes = ((forbid, allow) => {
 
 /**
  * @param info Array
- * @param info[0] => desHost
- * @[param] info[1] => desPort
+ * @param info[0] => {host, port, url}
+ * @param info[1] => data
  * @return parser Object
  */
 const getParser = (...info) => {
     let parser = null
-    let host = info[0]
-    let port = info[1]
+        ,host = info[0].host
+        ,port = info[0].port
     for (let item of dbRoutes) {
         if (item.patt.test(host)) {
             parser = item.parser
