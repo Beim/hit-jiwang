@@ -1,41 +1,67 @@
-// HTTP/1.1 200 OK
-// Content-Type: text/plain; charset=utf-8
-// Content-Length: 6892
-// Date: Mon, 17 Oct 2016 04:51:55 GMT
-// Connection: keep-alive
-
+const print = console.log.bind()
 const net = require('net')
 const fetchObj = {}
+
+const statusCode = {
+    '200': 'OK',
+    '301': 'Moved Permanently',
+    '302': 'Found',
+    '303': 'See Other',
+    '304': 'Not Modified',
+    '400': 'Bad Request',
+    '403': 'Forbidden',
+    '404': 'NOT FOUND',
+    '500': 'Internal Server Error',
+    '502': 'Bad Gateway',
+    '503': 'Service Unvailable'
+}
+
+const createResponse = (body, options = {}, status = 200) => {
+    if (!statusCode[status]) status = 404
+    let result = `HTTP/1.1 ${status} ${statusCode[status]}\n`
+    let plainOpt = {
+        'is-proxy': true,
+        'Content-Type': `text/plain; charset=utf-8`,
+        'Content-Length': `${Buffer.byteLength(body)}`,
+        'Date': `${new Date().toGMTString()}`,
+        'Connection': 'keep-alive'
+    }
+    for (let i in options) plainOpt[i] = options[i]
+    for (let i in plainOpt) result += `${i}: ${plainOpt[i]}\n`
+    result += `\n${body}`
+    return result
+}
+
+// ---------------------------------------------------------------------------------
 
 fetchObj.fetchRemote = (host, port, data, client = new net.Socket()) => {
     return new Promise((rsl, rej) => {
         let resArr = []
         client.connect(port, host, () => {
-            console.log(`client: connect to ${host}:${port}`)
+            print(`client: connect to ${host}:${port}`)
             client.end(data)
         })
         client.on('data', (chunk) => { resArr.push(chunk) })
         client.on('end', () => {
-            console.log('client: end')
+            // print('client: end')
             rsl(Buffer.concat(resArr))
         })
         client.on('close', (err) => {
-            console.log('client: closed, hasError: ', err)
+            if (err) print('client: closed, hasError: ', err)
         })
         client.on('error', (e) => rej(e))
     })
 }
 
+fetchObj.fetchForbid = (...args) => {
+    return new Promise((rsl, rej) => {
+        rsl(createResponse('禁止访问'))
+    })
+}
+
 fetchObj.fetchBaidu = (host, port, data, client = new net.Socket()) => {
     return new Promise((rsl, rej) => {
-        let bodyData = `这是百度~`
-        let response = `HTTP/1.1 200 OK\n` +
-            `Content-Type: text/plain; charset=utf-8\n` +
-            `Content-Length: ${Buffer.byteLength(bodyData)}\n` +
-            `Date: ${new Date().toGMTString()}\n` + 
-            `Connection: keep-alive\n\n` +
-            bodyData
-        console.log(response)
+        let response = createResponse('这是谷歌~')
         rsl(response)
     })
 }

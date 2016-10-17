@@ -1,15 +1,35 @@
 const routes = require('./routes.js')
 
-const dbRoutes = [
+const notAcceptConnect = [
     {
-        patt: /baidu.com/,
-        parser: routes.fetchBaidu
+        address: /127\.0\.0\.1/,
+        port: /8888/
+    }
+]
+
+const dbForbidRoutes = [
+    /github.com/,
+    /evernote.com/
+]
+const dbAllowRoutes = [
+    {
+        patt: /google.com/,
+        parser: 'fetchBaidu'
     },
     {
         patt: /.*/,
-        parser: routes.fetchRemote
+        parser: 'fetchRemote'
     }
 ]
+
+// ---------------------------------------------------------------------
+
+const dbRoutes = ((forbid, allow) => {
+    let res = []
+    for (let i of forbid) res.push({patt: i, parser: routes.fetchForbid})
+    for (let i of allow) res.push({patt: i.patt, parser: routes[i.parser]})
+    return res
+})(dbForbidRoutes, dbAllowRoutes)
 
 /**
  * @param info Array
@@ -30,6 +50,17 @@ const getParser = (...info) => {
     return parser.call(null, ...info)
 }
 
+const isAcceptConnect = (address, port) => {
+    for (let item of notAcceptConnect) {
+        let isRefuse = item.address.test(address)
+        if (item.port) isRefuse = (isRefuse && item.port.test(port))
+        // let isRefuse = (item.address.test(address) && item.port && item.port.test(port))
+        if (isRefuse) return false
+    }
+    return true
+}
+
 module.exports = {
-    getParser
+    getParser,
+    isAcceptConnect,
 }
