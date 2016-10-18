@@ -67,6 +67,7 @@ const parseReqHeader = (header) => {
  */
 const combineMsg = (headerObj, body) => {
     let newData = ''
+    if (headerObj.firstLine) newData += `${headerObj.firstLine}\r\n`
     for (let i in headerObj) {
         newData += `${i}: ${headerObj[i]}\r\n`
     }
@@ -84,7 +85,6 @@ const searchCache = (header, body, data) => {
     let {headInfo} = parseReqHeader(header)
     let newData = ''
     if (cache[headInfo.url]) {
-        print('get Cache')
         let headerObj = headInfo.headerObj
         headerObj['If-Modified-Since'] = cache[headInfo.url]['Last-Modified']
         newData = combineMsg(headerObj, body)
@@ -105,26 +105,36 @@ const saveCache = (data, url) => {
     let headerObj = parseResHeader(header)
     // 如果返回头里有'Last-Modified' 字段
     if (headerObj['Last-Modified']) {
+        print('has last-Modified')
         // 如果有该缓存
         let hasCache = !!cache[url]
         if (hasCache) {
+            print('hasCache, cache[url]: ', url)
             // 如果返回头里的修改时间 比 缓存里的修改时间  晚, 则说明文件有改动
             let isModified = headerObj['Last-Modified'] > cache[url]['Last-Modified']
+            print('is modified? ', headerObj['Last-Modified'], cache[url]['Last-Modified'])
             // 如果文件没有改动, 从cache 中取出body, 与header 组合
             if (!isModified) {
-                data = combineMsg(headerObj, cache[url].body)
+                print(url, 'not modified, get from cache')
+                data = cache[url].data
+                // let sBody = cache[url].body
+                // headerObj['Content-Length'] = Buffer.byteLength(sBody)
+                // data = combineMsg(headerObj, sBody)
             // 如果文件被改动, 更新cache
             } else {
+                print('has modified, update cache')
                 cache[url] = {
                     'Last-Modified': headerObj['Last-Modified'],
-                    body
+                    body,
+                    data
                 }
             }
         // 如果没有缓存, 存入cache
         } else {
             cache[url] = {
                 'Last-Modified': headerObj['Last-Modified'],
-                body
+                body,
+                data
             }
         }
     }
@@ -155,13 +165,13 @@ const injectReqHeader = (data) => {
 const listener = (sock) => {
     // 若禁止该主机访问, 关闭socket
     if (!isAcceptConnect(sock.remoteAddress, sock.remotePort)) return sock.destroy()
-    print('server: new connection')
+    // print('server: new connection')
     sock.on('data', (data) => {
         // 解析请求头, 并向请求头添加字段'If-Modified-Since'
         let {isHTTPRequest, headInfo, nData} = injectReqHeader(data)
         if (isHTTPRequest) {
             // 访问目标服务器, 获取数据
-            fetchRemote(headInfo, data)
+            fetchRemote(headInfo, nData)
                 .then((res) => {
                     // 从cache 中获取数据, 或 更新cache
                     res = saveCache(res, headInfo.url)

@@ -48,12 +48,10 @@ fetchObj.fetchRemote = (headInfo, data, client = new net.Socket()) => {
     return new Promise((rsl, rej) => {
         let resArr = []
         client.connect(port, host, () => {
-            print(`client: connect to ${host}:${port}`)
             client.end(data)
         })
         client.on('data', (chunk) => { resArr.push(chunk) })
         client.on('end', () => {
-            // print('client: end')
             rsl(Buffer.concat(resArr))
         })
         client.on('close', (err) => {

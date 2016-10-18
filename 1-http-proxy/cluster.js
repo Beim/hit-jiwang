@@ -7,5 +7,5 @@ cluster.setupMaster({
 
 for (let i = 0; i < cpus.length; i++) {
     let worker = cluster.fork()
-    console.log(worker.process.pid)
+    console.log('进程id: ', worker.process.pid)
 }
