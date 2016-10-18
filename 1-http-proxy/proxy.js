@@ -131,28 +131,41 @@ const saveCache = (data, url) => {
     return data
 }
 
+/**
+ * 解析请求头,并向请求头中添加字段
+ * @param data Buffer
+ * @param Object
+ */
+const injectReqHeader = (data) => {
+    // 取出header 和body
+    let {header, body} = diffHeaderAndBody(data)
+    // 根据请求头的url 查找cache, 如果存在, 在请求头中添加'If-Modified-Since'
+    data = searchCache(header, body, data)
+    // 更新header
+    header = diffHeaderAndBody(data).header
+    // 解析请求头
+    let {isHTTPRequest, headInfo} = parseReqHeader(header)
+    return {
+        isHTTPRequest,
+        headInfo,
+        nData: data
+    }
+}
+
 const listener = (sock) => {
-    // 若禁止该主机访问, 销毁socket
+    // 若禁止该主机访问, 关闭socket
     if (!isAcceptConnect(sock.remoteAddress, sock.remotePort)) return sock.destroy()
     print('server: new connection')
     sock.on('data', (data) => {
-        // 取出header 和body
-        let {header, body} = diffHeaderAndBody(data)
-        // 根据请求头的url 查找cache, 如果存在, 在请求头中添加'If-Modified-Since'
-        data = searchCache(header, body, data)
-        // 更新header
-        header = diffHeaderAndBody(data).header
-        // 解析请求头
-        let {isHTTPRequest, headInfo} = parseReqHeader(header)
+        // 解析请求头, 并向请求头添加字段'If-Modified-Since'
+        let {isHTTPRequest, headInfo, nData} = injectReqHeader(data)
         if (isHTTPRequest) {
-            // print(headInfo)
             // 访问目标服务器, 获取数据
             fetchRemote(headInfo, data)
                 .then((res) => {
                     // 从cache 中获取数据, 或 更新cache
                     res = saveCache(res, headInfo.url)
                     sock.write(res)
-                    print(cache)
                 })
                 .catch((e) => {
                     print('fetch error: ', e)

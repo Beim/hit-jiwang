@@ -1,0 +1,10 @@
+[
+    {
+        "patt": "google\\.com",
+        "parser": "fetchBaidu"
+    },
+    {
+        "patt": ".*",
+        "parser": "fetchRemote"
+    }
+]

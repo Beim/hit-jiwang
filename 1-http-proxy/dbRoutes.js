@@ -1,28 +1,35 @@
 const routes = require('./routes.js')
 
-const notAcceptConnect = [
-    {
-        address: /127\.0\.0\.1/,
-        port: /8888/
+const notAcceptConnect = ((arr) => {
+    let resArr = []
+    for (let item of arr) {
+        let obj = {}
+        for (let i in item) {
+            obj[i] = new RegExp(item[i])
+        }
+        resArr.push(obj)
     }
-]
+    return resArr
+})(require('./DB/refuseHost.json'))
 
-const dbForbidRoutes = [
-    /github.com/,
-    /evernote.com/
-]
-const dbAllowRoutes = [
-    {
-        patt: /google.com/,
-        parser: 'fetchBaidu'
-    },
-    {
-        patt: /.*/,
-        parser: 'fetchRemote'
+const dbForbidRoutes = ((arr) => {
+    let resArr = []
+    for (let item of arr) {
+        resArr.push(new RegExp(item))
     }
-]
+    return resArr
+})(require('./DB/forbidRoutes.json'))
 
-// ---------------------------------------------------------------------
+const dbAllowRoutes = ((arr) => {
+    let resArr = []
+    for (let item of arr) {
+        resArr.push({
+            patt: new RegExp(item.patt),
+            parser: item.parser
+        })
+    }
+    return resArr
+})(require('./DB/allowRoutes.json'))
 
 const dbRoutes = ((forbid, allow) => {
     let res = []
@@ -30,6 +37,8 @@ const dbRoutes = ((forbid, allow) => {
     for (let i of allow) res.push({patt: i.patt, parser: routes[i.parser]})
     return res
 })(dbForbidRoutes, dbAllowRoutes)
+
+// ---------------------------------------------------------------------
 
 /**
  * @param info Array
