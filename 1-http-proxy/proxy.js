@@ -105,24 +105,24 @@ const saveCache = (data, url) => {
     let headerObj = parseResHeader(header)
     // 如果返回头里有'Last-Modified' 字段
     if (headerObj['Last-Modified']) {
-        print('has last-Modified')
+        // print('has last-Modified')
         // 如果有该缓存
         let hasCache = !!cache[url]
         if (hasCache) {
-            print('hasCache, cache[url]: ', url)
+            // print('hasCache, cache[url]: ', url)
             // 如果返回头里的修改时间 比 缓存里的修改时间  晚, 则说明文件有改动
             let isModified = headerObj['Last-Modified'] > cache[url]['Last-Modified']
-            print('is modified? ', headerObj['Last-Modified'], cache[url]['Last-Modified'])
+            // print('is modified? ', headerObj['Last-Modified'], cache[url]['Last-Modified'])
             // 如果文件没有改动, 从cache 中取出body, 与header 组合
             if (!isModified) {
-                print(url, 'not modified, get from cache')
+                // print(url, 'not modified, get from cache')
                 data = cache[url].data
                 // let sBody = cache[url].body
                 // headerObj['Content-Length'] = Buffer.byteLength(sBody)
                 // data = combineMsg(headerObj, sBody)
             // 如果文件被改动, 更新cache
             } else {
-                print('has modified, update cache')
+                // print('has modified, update cache')
                 cache[url] = {
                     'Last-Modified': headerObj['Last-Modified'],
                     body,
@@ -173,6 +173,7 @@ const listener = (sock) => {
             // 访问目标服务器, 获取数据
             fetchRemote(headInfo, nData)
                 .then((res) => {
+                    test(res)
                     // 从cache 中获取数据, 或 更新cache
                     res = saveCache(res, headInfo.url)
                     sock.write(res)
