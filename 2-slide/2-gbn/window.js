@@ -7,6 +7,8 @@ module.exports = (winSize, seqSize) => {
 
         getData: () => data,
 
+        isEmpty: () => data.length === 0,
+
         getCurr: () => {
             let x = next - 1
             if (x < 0) x += seqSize

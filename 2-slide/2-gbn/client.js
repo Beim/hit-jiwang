@@ -32,9 +32,9 @@ const fillWindow = ((index = 0) => {
 const sendOne = (seq, chunk) => {
     // 随机丢弃
     if (Math.random() < probability) {
-        print(`do not send ${chunk}, seq: ${seq}`)
+        print(`==X seq: ${seq}, do not send ${chunk}\n`)
     } else {
-        print(`send out ${chunk}, seq: ${seq}`)
+        print(`==> seq: ${seq}, send out ${chunk}\n`)
         let buf = Buffer.alloc(1)
         buf.writeInt8(seq)
         // 填入序号
@@ -47,7 +47,6 @@ const sendOne = (seq, chunk) => {
 
 const sendWindow = () => {
     let windata = swindow.getData()
-    print(JSON.stringify(windata))
     for (let item of windata) {
         sendOne(item.seq, item.chunk)
     }
@@ -56,7 +55,7 @@ const sendWindow = () => {
 // 定时重传
 const getTimer = () => {
     return setInterval(() => {
-        print('resend')
+        print('== resend\n')
         sendWindow()
     }, outtime)
 }
@@ -68,13 +67,18 @@ socket.on('message', (msg, info) => {
     }
     let ack = msg.readInt8()
     msg = msg.slice(1)
-    print(`sent : ${msg.toString()}, ack: ${ack}`)
+    print(`<== ${msg.toString()}, ack: ${ack}\n`)
 
     if (swindow.ackLegal(ack)) {
         let length = swindow.minus(ack) + 1
         swindow.go(length)
         if (ack === swindow.getCurr()) {
             fillWindow()
+            if (swindow.isEmpty()) {
+                socket.close()
+                print(`finish!, time cost: ${Math.floor((new Date() - startTime) / 1000)}s`)
+                process.exit(0)
+            }
             sendWindow()
         }
     }
