@@ -53,11 +53,13 @@ socket.on('message', (msg, rinfo) => {
     msg = msg.slice(1).toString()
 
     sendAck(seq, msg, address, port)
+    swindow.updateData(seq, msg)
     if (swindow.ackLegal(seq)) {
         swindow.saveAck(seq)
         if (swindow.isAllAck()) {
             let length = swindow.minus(swindow.getCurr()) + 1
-            swindow.go(length)
+            let outData = swindow.go(length)
+            print(`# receive ${JSON.stringify(outData)}\n`)
             swindow.resetAcks()
             fillWindow()
         }

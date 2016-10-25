@@ -57,8 +57,10 @@ module.exports = (winSize, seqSize) => {
 
         // 将窗口移动length 距离
         go: (length) => {
+            let outData = data.slice(0, length)
             data = data.slice(length)
             base = (base + length) % seqSize
+            return outData
         },
 
         // 存入数据, 将next前移
@@ -73,7 +75,13 @@ module.exports = (winSize, seqSize) => {
                 next = ++next % seqSize
                 return true
             }
-        }
+        },
+
+        updateData: (seq, chunk) => {
+            for (let i in data) {
+                if (data[i].seq === seq) data[i].chunk = chunk
+            }
+        },
     }
 }
 
