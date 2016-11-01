@@ -32,9 +32,11 @@ const fillWindow = ((index = 0) => {
 const sendOne = (seq, chunk) => {
     // 随机丢弃
     if (Math.random() < probability) {
-        print(`==X seq: ${seq}, do not send ${chunk}\n`)
+        print(`==X seq: ${seq}, do not send ${chunk}`)
+        // print(`==X seq: ${seq}, do not send ${chunk}\n`)
     } else {
-        print(`==> seq: ${seq}, send out ${chunk}\n`)
+        print(`==> seq: ${seq}, send out ${chunk}`)
+        // print(`==> seq: ${seq}, send out ${chunk}\n`)
         let buf = Buffer.alloc(1)
         buf.writeInt8(seq)
         // 填入序号
@@ -55,7 +57,8 @@ const sendWindow = () => {
 // 定时重传
 const getTimer = () => {
     return setInterval(() => {
-        print('== resend\n')
+        print('== resend')
+        // print('== resend\n')
         sendWindow()
     }, outtime)
 }
@@ -67,7 +70,8 @@ socket.on('message', (msg, info) => {
     }
     let ack = msg.readInt8()
     msg = msg.slice(1)
-    print(`<== ${msg.toString()}, ack: ${ack}\n`)
+    print(`<== ${msg.toString()}, ack: ${ack}`)
+    // print(`<== ${msg.toString()}, ack: ${ack}\n`)
 
     if (swindow.ackLegal(ack)) {
         let length = swindow.minus(ack) + 1

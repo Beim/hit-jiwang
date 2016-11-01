@@ -39,8 +39,10 @@ socket.on('message', (msg, rinfo) => {
     let ack = accept(seq)
     if (Math.random() < probability) {
         print(`==X drop : ${msg}, seq: ${seq}, ack: ${ack}`)
+        // print(`==X drop : ${msg}, seq: ${seq}, ack: ${ack}\n`)
     } else {
         print(`==> accept : ${msg}, seq: ${seq}, ack: ${ack}`)
+        // print(`==> accept : ${msg}, seq: ${seq}, ack: ${ack}\n`)
         write(ack, msg, address, port)
     }
 })
